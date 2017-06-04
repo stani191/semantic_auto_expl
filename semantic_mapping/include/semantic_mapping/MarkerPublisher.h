@@ -37,6 +37,7 @@ public:
     void addDoorMarker(const geometry_msgs::Point pose, std::string doorState, double scale, int id);
     void deleteDoorMarker(int id);
     void updateNavTargetMarker(const geometry_msgs::Point pose);
+    void updateDoorMarkers();
 
     // TODO: callback for dangerous areas msg
 

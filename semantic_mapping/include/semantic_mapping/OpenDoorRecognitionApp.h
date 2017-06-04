@@ -64,7 +64,7 @@ private:
     double kinect_height = 0.36;
     double stripe_height = 0.5;
     double stripe_noise = 0.007;
-    int max_noise = 10000;
+    int max_noise = 3000;
 
     double ransac_eps_angle = 0.1;
     double ransac_distance_threshold = 0.04;

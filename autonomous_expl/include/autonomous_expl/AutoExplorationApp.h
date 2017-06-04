@@ -30,6 +30,7 @@
 #include <map_msgs/OccupancyGridUpdate.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/GetMap.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/image_encodings.h>
 #include <std_msgs/Float64.h>
@@ -50,6 +51,7 @@ public:
     bool selectNavTarget(Mat map, float resolution);
     bool navigate();
     void setCurrentRobotPos();
+    bool updateMap();
 
     geometry_msgs::PointStamped mapToPixelCoords(geometry_msgs::PointStamped robotPosMap);
     geometry_msgs::PointStamped pixelToMapCoords(geometry_msgs::PointStamped robotPosPixel);
@@ -103,6 +105,7 @@ private:
     ros::Subscriber vel_sub;
     ros::Subscriber odom_sub;
     ros::Subscriber move_base_status_sub;
+    ros::ServiceClient mapClient;
 
     tf::TransformListener tf_listener;
 

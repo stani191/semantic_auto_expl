@@ -61,13 +61,13 @@ geometry_msgs::Point TargetSelector::selectTarget(vector<std::pair<Point2f, Poin
         }
         cost.push_back(dist+255*(value));
     }
-    Scalar color = Scalar(255);
+    Scalar color = Scalar(0);
     circle(filtered_frontiers, targets[std::distance(cost.begin(), std::min_element(cost.begin(), cost.end()))].second, 3, color, -1, 8, 0 );
 
     /// Selected Target - 9target.pgm
     std::string imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_9target.pgm";
     imgCounter++;
-    //ROS_ASSERT(imwrite(imgName, filtered_frontiers));
+    ROS_ASSERT(imwrite(imgName, filtered_frontiers));
 
     Point2f target_ = targets[std::distance(cost.begin(), std::min_element(cost.begin(), cost.end()))].second;
     geometry_msgs::Point target;

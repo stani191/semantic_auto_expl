@@ -44,8 +44,8 @@ Mat FrontierExtractor::extractFrontiers(geometry_msgs::Point robotPos, Mat map, 
     { return empty; }
 
     /// Create a matrix of the same type and size as src (for dst)
-    dst = Mat::zeros( src.size(), src.type() );
-    occupied = Mat::zeros( src.size(), src.type() );
+    dst = Mat::zeros( map.size(), map.type());
+    occupied = Mat::zeros( map.size(), map.type());
 
     /// Extract occupied cells, which are filtered later in the process
     for(int i = 0; i < src.rows; i++){
@@ -59,7 +59,7 @@ Mat FrontierExtractor::extractFrontiers(geometry_msgs::Point robotPos, Mat map, 
     }
 
     /// Reduce noise with a 3x3 kernel
-    blur( src, detected_edges, Size(3,3) );
+    blur( dist_transform, detected_edges, Size(3,3) );
 
     /// Apply Canny Edge Detector
     Canny( detected_edges, detected_edges, canny_threshold, canny_threshold*canny_ratio, canny_kernel_size );
@@ -82,7 +82,7 @@ Mat FrontierExtractor::extractFrontiers(geometry_msgs::Point robotPos, Mat map, 
 
     /// Save extracted frontier map - 4frontiers.pgm
     std::string imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_4frontiers.pgm";
-    //ROS_ASSERT(imwrite(imgName, dst));
+    ROS_ASSERT(imwrite(imgName, dst));
 
     /// Filter frontiers with low-pass kernel - 5filtered_frontiers.pgm
     float kernel_data[25] = { 0, 0.2, 0.5, 0.2, 0, 0.2, 1, 1, 1, 0.2, 0.5, 1, 1, 1,
@@ -154,14 +154,14 @@ vector<std::pair<Point2f,Point2f>> FrontierExtractor::extractTargets(Mat frontie
 
     /// Draw robot position
     std::string imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_6frontiers_target.pgm";
-    ROS_ASSERT(imwrite(imgName, frontiers));
+    //ROS_ASSERT(imwrite(imgName, frontiers));
 
     /// Move targets to the closest point that can be reached by the robot - 7targets_moved.pgm
     vector<Point2f> ptvec;
     vector<std::pair<Point2f, Point2f>> mc_pair;
     for(int i = 0; i < dist_transform.rows; i++){
         for(int j = 0; j < dist_transform.cols; j++){
-            if(dist_transform.at<uchar>(i,j) > 0){
+            if(dist_transform.at<uchar>(i,j) > 60){
                 Point2f tmp(j,i);
                 ptvec.push_back(tmp);
             }
@@ -193,7 +193,7 @@ vector<std::pair<Point2f,Point2f>> FrontierExtractor::extractTargets(Mat frontie
     }
 
     imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_7targets_moved.pgm";
-    //ROS_ASSERT(imwrite(imgName, frontiers));
+    ROS_ASSERT(imwrite(imgName, frontiers));
 
     /// Combine frontier and distance transform images - 8combined.pgm
     Mat dst_combined = Mat::zeros(dist_transform.size(), dist_transform.type());

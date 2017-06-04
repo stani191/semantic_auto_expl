@@ -223,6 +223,7 @@ bool MarkerPublisher::isDuplicate(semantic_mapping_msgs::DoorMessage msg){
     bool duplicate = false;
     for (semantic_mapping_msgs::DoorMessage& door : doors) {
         if(euclideanDistance(midPoint(msg.pt_end.point,msg.pt_start.point), midPoint(door.pt_end.point,door.pt_start.point)) < euclideanDistance(msg.pt_end.point,msg.pt_start.point)){
+            // smaller quality is better
             if(msg.quality < door.quality){
                 replaceDoor(door,msg);
             } else {
@@ -291,6 +292,22 @@ void MarkerPublisher::navTargetCallback(geometry_msgs::PoseStamped msg){
 
     // 2. Update nav target marker
     updateNavTargetMarker(navTargetMap.pose.position);
+}
+
+/**
+ * @brief MarkerPublisher::resetDoorMarkers
+ * Updates all active door markers.
+ */
+void MarkerPublisher::updateDoorMarkers(){
+    for(semantic_mapping_msgs::DoorMessage door : doors){
+        geometry_msgs::PointStamped pt_new_start_map;
+        geometry_msgs::PointStamped pt_new_end_map;
+        listener.waitForTransform("world","map", door.header.stamp, ros::Duration(2.0));
+        listener.transformPoint("map", door.pt_start, pt_new_start_map);
+        listener.transformPoint("map", door.pt_end, pt_new_end_map);
+        addDoorMarker(midPoint(pt_new_start_map.point,pt_new_end_map.point), door.state, euclideanDistance(pt_new_start_map.point,pt_new_end_map.point), door.header.seq);
+    }
+    ROS_INFO("All door markers updated");
 }
 
 /**

@@ -57,8 +57,10 @@ Mat DistanceTransformer::distance_transform(geometry_msgs::Point robotPos, Mat m
 
       /// Peform distance transform
       // Create binary image from source image
+      std::string imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_0map.pgm";
+      ROS_ASSERT(imwrite(imgName, map));
       threshold(src, src, 40, 255, CV_THRESH_BINARY);
-      std::string imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_0dist_trans.pgm";
+      imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_0dist_trans.pgm";
       //ROS_ASSERT(imwrite(imgName, src));
       distanceTransform(src, tr, CV_DIST_L2, 3);
       imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_0dist_trans2.pgm";
@@ -87,16 +89,16 @@ Mat DistanceTransformer::distance_transform(geometry_msgs::Point robotPos, Mat m
       for(int i = 0; i < tr.rows; i++){
           for(int j = 0; j < tr.cols; j++){
               if(tr.at<uchar>(i,j) > radius_threshold){
-                  tr.at<uchar>(i,j) = 50;
+                  tr.at<uchar>(i,j) = 255;
               }
               else {
-                  tr.at<uchar>(i,j) = 0;
+                  tr.at<uchar>(i,j) = 50;
               }
          }
       }
       imgName = "/home/stanic/master_thesis/catkin_workspace/" + std::to_string(imgCounter) + "_3accessible.pgm";
       imgCounter++;
-      //ROS_ASSERT(imwrite(imgName, tr));
+      ROS_ASSERT(imwrite(imgName, tr));
       //std::cout << "DistanceTransformer finished." << std::endl;
       return tr;
 }

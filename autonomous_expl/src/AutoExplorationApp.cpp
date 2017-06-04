@@ -26,6 +26,7 @@ AutoExplorationApp::AutoExplorationApp(){
     vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 100);
     target_pub = n.advertise<geometry_msgs::PoseStamped>("move_base_simple/goal", 100);
     tilt_pub = n.advertise<std_msgs::Float64>("/tilt_controller/command", 100);
+    mapClient = n.serviceClient<nav_msgs::GetMap>("/dynamic_map");
     node_name = ros::this_node::getName();
 
     isMoving = false;
@@ -120,7 +121,7 @@ double AutoExplorationApp::euclideanDistance(const geometry_msgs::Point p1, cons
  * Odometry listener. Determines whether the robot is moving or not and sets the according boolean flag.
  */
 void AutoExplorationApp::odomCallback(const nav_msgs::Odometry msg){
-    if(mapAvailable){
+    if(mapAvailable && initFinished && !navigationActive){
         geometry_msgs::Vector3 angular = msg.twist.twist.angular;
         geometry_msgs::Vector3 linear = msg.twist.twist.linear;
 
@@ -135,11 +136,11 @@ void AutoExplorationApp::odomCallback(const nav_msgs::Odometry msg){
         setCurrentRobotPos();
 
         if (!isMoving && euclideanDistance(robotPosWorld.point, targetWorld.point) < 0.5){
-            if(!selectNavTarget(dyn_map,mapResolution)){
-                ROS_INFO("No targets available. Finished.");
-                ros::shutdown;
-            }
-            //navigate();
+            //if(!selectNavTarget(dyn_map,mapResolution)){
+                ROS_INFO("No active target");
+                //ros::shutdown;
+            //}
+                navigate();
         } else if (euclideanDistance(robotPosWorld.point, targetWorld.point) < 0.5){
             ROS_INFO("Target == robot position, nothing to do.");
             ros::shutdown;
@@ -178,10 +179,10 @@ void AutoExplorationApp::mapCallback(const nav_msgs::OccupancyGrid msg){
     }
 
     // Select new target of updated map
-    if(!selectNavTarget(dyn_map,mapResolution)){
+    /*if(!selectNavTarget(dyn_map,mapResolution)){
         ROS_INFO("No targets available. Finished.");
         ros::shutdown;
-    }
+    }*/
     mapAvailable = true;
     //navigate();
 }
@@ -242,15 +243,15 @@ void AutoExplorationApp::moveBaseStatusCallback(const actionlib_msgs::GoalStatus
                 navigationActive = true;
                 rotate();
                 sleep(3);
-                navigationActive = false;
                 if(!selectNavTarget(dyn_map,mapResolution)){
                     ROS_INFO("No targets available. Finished.");
                     ros::shutdown;
                 }
+                navigationActive = false;
                 navigate();
 
             } else if(!status1){
-                ROS_DEBUG("Not status 4 and not 1 -> navigate");
+                ROS_INFO("No active target - select new target and start to navigate");
                 navigationActive = false;
                 if(!selectNavTarget(dyn_map,mapResolution)){
                     ROS_INFO("No targets available. Finished.");
@@ -260,7 +261,7 @@ void AutoExplorationApp::moveBaseStatusCallback(const actionlib_msgs::GoalStatus
             }
 
         } else {
-            ROS_INFO("No target active -> select target + navigate");
+            ROS_INFO("No active target - select new target and start to navigate");
             if(!selectNavTarget(dyn_map,mapResolution)){
                 ROS_INFO("No targets available. Finished.");
                 ros::shutdown;
@@ -390,10 +391,28 @@ bool AutoExplorationApp::navigate(){
         navigationActive = true;
         return navigate(targetMap);
     } else {
-        ROS_DEBUG("Navigation already active.");
+        ROS_INFO("Navigation already active.");
     }
     return false;
 
+}
+
+/**
+ * @brief AutoExplorationApp::updateMap
+ * Calls gmapping's dynamic_map service to update the map used for target selection
+ * @return
+ */
+bool AutoExplorationApp::updateMap(){
+    if(initFinished){
+        nav_msgs::GetMap srv;
+        if(mapClient.call(srv)){
+            mapCallback(srv.response.map);
+            return true;
+        } else {
+            ROS_WARN("Service GetMap failed.");
+            return false;
+        }
+    }
 }
 
 /**
@@ -405,6 +424,7 @@ bool AutoExplorationApp::navigate(){
  * @return
  */
 bool AutoExplorationApp::selectNavTarget(Mat map, float resolution){
+    updateMap();
 
     /// Step 1: Obtain accessible occupancy grid map
     setCurrentRobotPos();
@@ -422,6 +442,7 @@ bool AutoExplorationApp::selectNavTarget(Mat map, float resolution){
     }
 
     /// Step 3: Evaluate and select the best target
+    int targetIndex = 0;
     geometry_msgs::Point targetPoint = ts.selectTarget(targets, robotPosMap.point, dist_transform, frontiers);
     geometry_msgs::PointStamped target;
     target.header = robotPosMap.header;

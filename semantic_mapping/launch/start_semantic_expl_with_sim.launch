@@ -88,10 +88,10 @@
 	<!--node pkg="move_base" type="move_base" name="move_base" output="screen"/-->
 
 	<!-- start autonomous exploration -->
-	<node pkg="robotino_aut" type="robotino_aut_expl_node" name="robotino_aut_expl_node" output="screen"/>
+	<node pkg="autonomous_expl" type="autonomous_expl_node" name="autonomous_expl_node" output="screen"/>
 
 	<!-- start open door recognition -->
-	<node pkg="robotino_utils" type="open_door_detector" name="open_door_detector" output="screen"/>
+	<node pkg="semantic_mapping" type="open_door_detector" name="open_door_detector" output="screen"/>
 
 	<!-- start closed door recognition -->
 	<!--node pkg="" -->
@@ -100,6 +100,6 @@
 	<!--node pkg="" -->
 
 	<!-- start marker publisher -->
-	<node pkg="robotino_utils" type="marker_publisher" name="marker_publisher" output="screen"/>
+	<node pkg="semantic_mapping" type="marker_publisher" name="marker_publisher" output="screen"/>
 
 </launch>
