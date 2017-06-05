@@ -3,3 +3,4 @@ geometry_msgs/PointStamped pt_start
 geometry_msgs/PointStamped pt_end
 string state
 float32 quality
+float32 distance

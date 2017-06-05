@@ -66,6 +66,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    DoorMessage.msg
+   DangerousAreaMessage.msg
  )
 
 ## Generate services in the 'srv' folder

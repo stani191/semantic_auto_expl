@@ -389,7 +389,9 @@ bool AutoExplorationApp::navigate(geometry_msgs::PointStamped target){
 bool AutoExplorationApp::navigate(){
     if(!navigationActive){
         navigationActive = true;
-        return navigate(targetMap);
+        if(euclideanDistance(targetMap.point,robotPosMap.point) > 0.1){
+            return navigate(targetMap);
+        }
     } else {
         ROS_INFO("Navigation already active.");
     }

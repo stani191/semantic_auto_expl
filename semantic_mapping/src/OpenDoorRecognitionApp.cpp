@@ -204,6 +204,7 @@ void OpenDoorRecognitionApp::cloudCallback(const sensor_msgs::PointCloud2ConstPt
                             msg.pt_end.point.y = gap_end.y;
                             msg.pt_end.point.z = gap_end.z;
                             msg.quality = door_cloud->points.size();
+                            msg.distance = (gap_start.z + gap_end.z) / 2;
                             msg.state = "open";
                             map_pub.publish(msg);
                             door_id_counter++;

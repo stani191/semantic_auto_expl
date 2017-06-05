@@ -153,6 +153,7 @@ link_directories(
 add_executable(marker_publisher
     src/MarkerPublisher.cpp
     src/MarkerPublisherNode.cpp
+    src/DoorStateChecker.cpp
  )
 
  target_link_libraries(marker_publisher

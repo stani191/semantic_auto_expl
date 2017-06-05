@@ -10,14 +10,15 @@
  * @date 03.06.2017
  */
 
-#include <ros/ros.h>
 #include <iostream>
 #include <sys/time.h>
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
+
 #include "semantic_mapping_msgs/DoorMessage.h"
+#include "semantic_mapping/DoorStateChecker.h"
 
 class MarkerPublisher
 {
@@ -29,7 +30,7 @@ public:
     void spin();
     bool isDuplicate(const semantic_mapping_msgs::DoorMessage msg);
     void openDoorCallback(semantic_mapping_msgs::DoorMessage msg);
-    //void closedDoorCallback(robotino_utils_msgs::DoorMessage msg);
+    void mapCallback(const nav_msgs::OccupancyGrid msg);
     void navTargetCallback(geometry_msgs::PoseStamped msg);
     double euclideanDistance(const geometry_msgs::Point p1, const geometry_msgs::Point p2);
     geometry_msgs::Point midPoint(const geometry_msgs::Point p1, const geometry_msgs::Point p2);
@@ -45,8 +46,8 @@ private:
     std::string node_name;
     ros::NodeHandle n;
     ros::Subscriber input_open_door_sub;
-    //ros::Subscriber input_closed_door_sub;
     ros::Subscriber nav_target_sub;
+    ros::Subscriber update_sub;
     tf::TransformListener listener;
 
     // TODO: subscriber for dangerous msg
@@ -56,6 +57,8 @@ private:
     std::vector<semantic_mapping_msgs::DoorMessage> doors;
     geometry_msgs::PoseStamped navTargetMap;
     // TODO: vector of dangerous areas
+
+    DoorStateChecker d = {n};
 };
 
 #endif // MARKERPUBLISHER_H
