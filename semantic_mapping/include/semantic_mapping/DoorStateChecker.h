@@ -43,7 +43,7 @@ private:
     ros::Subscriber map_sub;
     tf::TransformListener tf_listener;
 
-    int occupiedThresh = 3;
+    int occupiedThresh = 7;
 
     cv::Mat dyn_map;
     geometry_msgs::Point mapOrigin;

@@ -95,7 +95,7 @@ void MarkerPublisher::addDoorMarker(const geometry_msgs::Point pose, std::string
     // 3. Publish the door marker - Line strip
     visualization_msgs::Marker marker;
     marker.header.frame_id = "map";
-    marker.header.stamp = ros::Time();
+    marker.header.stamp = ros::Time(0);
 
     marker.ns = "doors";
     marker.id = id;
@@ -187,7 +187,7 @@ void MarkerPublisher::updateNavTargetMarker(const geometry_msgs::Point pose){
 
     visualization_msgs::Marker marker;
     marker.header.frame_id = "map";
-    marker.header.stamp = ros::Time();
+    marker.header.stamp = ros::Time(0);
     marker.ns = "target";
     // id must me always the same in order to overwrite old targets
     marker.id = 1;
@@ -237,7 +237,7 @@ bool MarkerPublisher::isDuplicate(semantic_mapping_msgs::DoorMessage msg){
             // smaller quality is better
             if(msg.quality < door.quality){
                 replaceDoor(door,msg);
-            } else if (msg.quality == door.quality && msg.distance < door.distance){
+            } else if (msg.quality == door.quality && msg.distance < door.distance && msg.distance > 0.5){
                 replaceDoor(door,msg);
             } else {
                 ROS_INFO("Duplicate door detected with start: x=%f, y=%f, z=%f | end: x=%f, y=%f, z=%f", msg.pt_start.point.x, msg.pt_start.point.y, msg.pt_start.point.z, msg.pt_end.point.x, msg.pt_end.point.y, msg.pt_end.point.z);
@@ -272,6 +272,7 @@ void MarkerPublisher::openDoorCallback(semantic_mapping_msgs::DoorMessage msg){
     msg.pt_start.header.frame_id = "world";
     msg.pt_end = pt_end_world;
     msg.pt_end.header.frame_id = "world";
+    msg.header.stamp = ros::Time(0);
 
     if(!isDuplicate(msg)){
         doors.push_back(msg);
@@ -315,10 +316,12 @@ void MarkerPublisher::navTargetCallback(geometry_msgs::PoseStamped msg){
  * Updates all active door markers.
  */
 void MarkerPublisher::updateDoorMarkers(){
-    //d.checkDoorStates(doors);
+    d.checkDoorStates(doors);
     for(semantic_mapping_msgs::DoorMessage door : doors){
         geometry_msgs::PointStamped pt_new_start_map;
         geometry_msgs::PointStamped pt_new_end_map;
+        door.pt_start.header.stamp = ros::Time(0);
+        door.pt_end.header.stamp = ros::Time(0);
         if(listener.waitForTransform("map","world", ros::Time(0), ros::Duration(2.0))){
             listener.transformPoint("map", door.pt_start, pt_new_start_map);
             listener.transformPoint("map", door.pt_end, pt_new_end_map);

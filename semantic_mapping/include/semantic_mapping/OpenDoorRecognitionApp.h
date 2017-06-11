@@ -58,13 +58,13 @@ public:
 private:
     double alpha = 0.10; // 0.04
     float radius = 0.005;
-    double door_width_min = 0.7;
-    double door_width_max = 1.6;
+    double door_width_min = 0.65;
+    double door_width_max = 1.1;
     double door_height = 1.95;
     double kinect_height = 0.36;
     double stripe_height = 0.5;
     double stripe_noise = 0.007;
-    int max_noise = 3000;
+    int max_noise = 1000;
 
     double ransac_eps_angle = 0.1;
     double ransac_distance_threshold = 0.04;

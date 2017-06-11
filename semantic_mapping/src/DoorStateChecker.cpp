@@ -102,45 +102,44 @@ void DoorStateChecker::mapCallback(const nav_msgs::OccupancyGrid msg){
  */
 void DoorStateChecker::checkDoorState(semantic_mapping_msgs::DoorMessage &door){
     // 1. Transform door start/end points into map coordinates
+    door.pt_start.header.stamp = ros::Time(0);
+    door.pt_end.header.stamp = ros::Time(0);
     geometry_msgs::PointStamped pt_start_map;
     geometry_msgs::PointStamped pt_end_map;
-    if(tf_listener.waitForTransform("map","world", ros::Time(0), ros::Duration(2.0))){
-        tf_listener.transformPoint("map", door.pt_start, pt_start_map);
-        tf_listener.transformPoint("map", door.pt_end, pt_end_map);
-        // Split door in 2 equal halves - find center points
-        geometry_msgs::PointStamped doorCenterPoint = midPoint(pt_start_map, pt_end_map);
-        geometry_msgs::PointStamped leftCenterPoint = mapToPixelCoords(midPoint(pt_start_map, doorCenterPoint));
-        geometry_msgs::PointStamped rightCenterPoint = mapToPixelCoords(midPoint(doorCenterPoint, pt_end_map));
-        doorCenterPoint = mapToPixelCoords(doorCenterPoint);
+    tf_listener.waitForTransform("map","world", ros::Time(0) , ros::Duration(5.0));
+    tf_listener.transformPoint("map", door.pt_start, pt_start_map);
+    tf_listener.transformPoint("map", door.pt_end, pt_end_map);
+    // Split door in 2 equal halves - find center points
+    geometry_msgs::PointStamped doorCenterPoint = midPoint(pt_start_map, pt_end_map);
+    geometry_msgs::PointStamped leftCenterPoint = mapToPixelCoords(midPoint(pt_start_map, doorCenterPoint));
+    geometry_msgs::PointStamped rightCenterPoint = mapToPixelCoords(midPoint(doorCenterPoint, pt_end_map));
+    doorCenterPoint = mapToPixelCoords(doorCenterPoint);
 
-        double leftDist = euclideanDistance(doorCenterPoint.point, leftCenterPoint.point);
-        double rightDist = euclideanDistance(doorCenterPoint.point, rightCenterPoint.point);
-        int occupiedLeft = 0;
-        int occupiedRight = 0;
+    double leftDist = euclideanDistance(doorCenterPoint.point, leftCenterPoint.point);
+    double rightDist = euclideanDistance(doorCenterPoint.point, rightCenterPoint.point);
+    int occupiedLeft = 0;
+    int occupiedRight = 0;
 
-        // for every half - check if more than x occupied cells in their radius
-        for(int i = 0; i < dyn_map.rows; i++){
-                for(int j = 0; j < dyn_map.cols; j++){
-                    if (dyn_map.at<uchar>(i,j) == 0){
-                        cv::Point2f tmp(j,i);
-                        if (euclideanDistance(tmp, leftCenterPoint) < leftDist){
-                            occupiedLeft++;
-                        }
-                        if (euclideanDistance(tmp, rightCenterPoint) < rightDist){
-                            occupiedRight++;
-                        }
+    // for every half - check if more than x occupied cells in their radius
+    for(int i = 0; i < dyn_map.rows; i++){
+            for(int j = 0; j < dyn_map.cols; j++){
+                if (dyn_map.at<uchar>(i,j) == 0){
+                    cv::Point2f tmp(j,i);
+                    if (euclideanDistance(tmp, leftCenterPoint) < leftDist){
+                        occupiedLeft++;
+                    }
+                    if (euclideanDistance(tmp, rightCenterPoint) < rightDist){
+                        occupiedRight++;
                     }
                 }
-        }
-        // if there are more than x cells in both cubes declare door as closed, else as open
-        if (occupiedLeft > occupiedThresh && occupiedRight > occupiedThresh){
-            ROS_INFO("Door changed to closed - occL = %d | occR = %d", occupiedLeft, occupiedRight);
-            door.state = "closed";
-        } else {
-            door.state = "open";
-        }
+            }
+    }
+    // if there are more than x cells in both cubes declare door as closed, else as open
+    if (occupiedLeft > occupiedThresh && occupiedRight > occupiedThresh){
+        ROS_INFO("Door changed to closed - occL = %d | occR = %d", occupiedLeft, occupiedRight);
+        door.state = "closed";
     } else {
-        ROS_WARN("transform error at checkDoorState");
+        door.state = "open";
     }
 }
 

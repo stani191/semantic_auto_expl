@@ -451,6 +451,7 @@ bool AutoExplorationApp::selectNavTarget(Mat map, float resolution){
     target.point = targetPoint;
     ROS_INFO("New Target (Map): [%f,%f,%f]", pixelToMapCoords(target).point.x, pixelToMapCoords(target).point.y, pixelToMapCoords(target).point.z);
     targetMap = pixelToMapCoords(target);
+    targetMap.header.frame_id = "map";
     tf_listener.waitForTransform("world","map", targetMap.header.stamp, ros::Duration(3.5));
     tf_listener.transformPoint("world", targetMap, targetWorld);
     return true;
