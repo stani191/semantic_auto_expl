@@ -462,7 +462,7 @@ bool AutoExplorationApp::selectNavTarget(Mat map, float resolution){
  * ROS node controller.
  */
 void AutoExplorationApp::spin(){
-    ros::Rate lr(10);
+    ros::Rate lr(3);
     while(ros::ok()){
       try {
         ros::spinOnce();

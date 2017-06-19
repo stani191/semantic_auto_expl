@@ -1,0 +1,5 @@
+<library path="lib/libSemanticLayerApp">
+  <class type="semantic_layer_ns::SemanticLayerApp" base_class_type="costmap_2d::Layer">
+    <description>Demo Layer that adds a point 1 meter in front of the robot</description>
+  </class>
+</library>

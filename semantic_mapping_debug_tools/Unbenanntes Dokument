@@ -1,0 +1,46 @@
+add_executable(display_depth_image
+    src/ImageDisplayNode.cpp
+ )
+ 
+ target_link_libraries(display_depth_image
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
+   ${OpenCV_LIBRARIES} 
+ )
+
+ add_executable(pcl_test
+    src/DoorDetector.cpp
+ )
+
+ target_link_libraries(pcl_test
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+   ${OpenCV_LIBS}
+ )
+
+add_executable(cloud_saver
+    src/CloudSaver.cpp
+ )
+
+ target_link_libraries(cloud_saver
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+ )
+
+ add_executable(cloud_loader
+    src/CloudTest.cpp
+ )
+
+ target_link_libraries(cloud_loader
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+ )
+
+ add_executable(opendoors
+    src/opendoordetector.cpp
+ )
+
+ target_link_libraries(opendoors
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+ )

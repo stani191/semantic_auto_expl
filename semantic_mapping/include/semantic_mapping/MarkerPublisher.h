@@ -16,6 +16,11 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <visualization_msgs/Marker.h>
+#include <sensor_msgs/PointCloud2.h>
+
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 #include "semantic_mapping_msgs/DoorMessage.h"
 #include "semantic_mapping/DoorStateChecker.h"
@@ -32,6 +37,7 @@ public:
     void openDoorCallback(semantic_mapping_msgs::DoorMessage msg);
     void mapCallback(const nav_msgs::OccupancyGrid msg);
     void navTargetCallback(geometry_msgs::PoseStamped msg);
+    void dangerousAreasCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
     double euclideanDistance(const geometry_msgs::Point p1, const geometry_msgs::Point p2);
     geometry_msgs::Point midPoint(const geometry_msgs::Point p1, const geometry_msgs::Point p2);
     void replaceDoor(semantic_mapping_msgs::DoorMessage oldDoor, semantic_mapping_msgs::DoorMessage newDoor);
@@ -40,7 +46,6 @@ public:
     void updateNavTargetMarker(const geometry_msgs::Point pose);
     void updateDoorMarkers();
 
-    // TODO: callback for dangerous areas msg
 
 private:
     std::string node_name;
@@ -48,6 +53,7 @@ private:
     ros::Subscriber input_open_door_sub;
     ros::Subscriber nav_target_sub;
     ros::Subscriber update_sub;
+    ros::Subscriber dangerous_sub;
     tf::TransformListener listener;
 
     // TODO: subscriber for dangerous msg

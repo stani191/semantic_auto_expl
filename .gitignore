@@ -32,7 +32,6 @@ local.properties
 .texlipse
 
 # Debug files
-/semantic_mapping_debug_tools
 *.kate-swp
 
 # Point clouds

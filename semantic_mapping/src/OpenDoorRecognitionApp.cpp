@@ -72,7 +72,7 @@ void OpenDoorRecognitionApp::cloudCallback(const sensor_msgs::PointCloud2ConstPt
     int i = 0, nr_points = (int) input_cloud->points.size();
 
     // Repeat open door recognition algorithm while percentage of unobserved cloud points > alpha
-    while(input_cloud->points.size () > alpha * nr_points && i < 3){
+    while(input_cloud->points.size () > alpha * nr_points && i < 1){
         std::clock_t begin = clock();
 
         // Use RANSAC to find the dominant wall
@@ -208,7 +208,7 @@ void OpenDoorRecognitionApp::cloudCallback(const sensor_msgs::PointCloud2ConstPt
                             msg.state = "open";
                             map_pub.publish(msg);
                             door_id_counter++;
-                            ROS_INFO("%d points in door cube", (int)door_cloud->points.size());
+                            ROS_INFO("%d points in door cube, found in %d iteration", (int)door_cloud->points.size(), i);
                             finished = true;
                             return;
                         } else {
@@ -248,7 +248,7 @@ void OpenDoorRecognitionApp::cloudCallback(const sensor_msgs::PointCloud2ConstPt
  * ROS node controller.
  */
 void OpenDoorRecognitionApp::spin(){
-    ros::Rate lr(5);
+    ros::Rate lr(10);
     while(ros::ok()){
       try {
         if(finished){

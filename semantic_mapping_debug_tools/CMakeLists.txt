@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(semantic_mapping)
+project(semantic_mapping_debug_tools)
 
 list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -O2 -g -ftest-coverage -fprofile-arcs")
 
@@ -7,7 +7,7 @@ list( APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -O2 -g -ftest-covera
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 ## Package dependencies
-set(semantic_mapping_DEPENDENCIES
+set(semantic_mapping_debug_tools_DEPENDENCIES
   roscpp
   std_msgs
   geometry_msgs
@@ -24,7 +24,7 @@ find_package(OpenCV REQUIRED)
 find_package(PCL REQUIRED)
 find_package(message_generation)
 find_package(catkin REQUIRED COMPONENTS
-  ${semantic_mapping_DEPENDENCIES}
+  ${semantic_mapping_debug_tools_DEPENDENCIES}
 )
 
 ## System dependencies are found with CMake's conventions
@@ -100,8 +100,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   #INCLUDE_DIRS include
-  LIBRARIES semantic_mapping
-  CATKIN_DEPENDS ${semantic_mapping_DEPENDENCIES} semantic_mapping_msgs
+  LIBRARIES semantic_mapping_debug_tools
+  CATKIN_DEPENDS ${semantic_mapping_debug_tools_DEPENDENCIES} semantic_mapping_msgs
   #DEPENDS system_lib
 )
 
@@ -139,43 +139,53 @@ link_directories(
 
 ## Specify libraries to link a library or executable target against
  
- add_executable(open_door_detector
-    src/OpenDoorRecognitionApp.cpp
-    src/OpenDoorRecognitionNode.cpp
+
+ add_executable(display_depth_image
+    src/ImageDisplayNode.cpp
+ )
+ 
+ target_link_libraries(display_depth_image
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
+   ${OpenCV_LIBRARIES} 
  )
 
- target_link_libraries(open_door_detector
+ add_executable(pcl_test
+    src/DoorDetector.cpp
+ )
+
+ target_link_libraries(pcl_test
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
    ${OpenCV_LIBS}
  )
 
-add_executable(marker_publisher
-    src/MarkerPublisher.cpp
-    src/MarkerPublisherNode.cpp
-    src/DoorStateChecker.cpp
+ add_executable(cloud_saver
+    src/CloudSaver.cpp
  )
 
- target_link_libraries(marker_publisher
+ target_link_libraries(cloud_saver
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
-   ${OpenCV_LIBS}
  )
 
-add_executable(dangerous_area_detector
-    src/DangerousAreaRecognition.cpp
-    src/DangerousAreaRecognitionNode.cpp
+ add_executable(cloud_loader
+    src/CloudTest.cpp
  )
 
- target_link_libraries(dangerous_area_detector
+ target_link_libraries(cloud_loader
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
-   ${OpenCV_LIBS}
-)
+ )
 
-add_dependencies(open_door_detector ${catkin_EXPORTED_TARGETS})
-add_dependencies(marker_publisher ${catkin_EXPORTED_TARGETS})
-add_dependencies(dangerous_area_detector ${catkin_EXPORTED_TARGETS})
+ add_executable(opendoors
+    src/opendoordetector.cpp
+ )
+
+ target_link_libraries(opendoors
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+ )
 #############
 ## Install ##
 #############

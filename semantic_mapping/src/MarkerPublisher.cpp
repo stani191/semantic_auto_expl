@@ -19,6 +19,7 @@ MarkerPublisher::MarkerPublisher(){
     update_sub = n.subscribe("map", 50, &MarkerPublisher::mapCallback, this);
     nav_target_sub = n.subscribe("move_base_simple/goal", 1, &MarkerPublisher::navTargetCallback, this);
     marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+    dangerous_sub = n.subscribe("dangerous_areas", 1, &MarkerPublisher::dangerousAreasCallback, this);
     ROS_INFO("Marker publisher node started.");
 }
 
@@ -334,11 +335,73 @@ void MarkerPublisher::updateDoorMarkers(){
 }
 
 /**
+ * @brief MarkerPublisher::dangerousAreasCallback
+ * @param msg
+ */
+void MarkerPublisher::dangerousAreasCallback(const sensor_msgs::PointCloud2ConstPtr& msg){
+    // Obtain input point cloud from topic message
+    pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::fromROSMsg(*msg, *input_cloud);
+
+    // Nullpointer check
+    if(input_cloud == nullptr){
+        ROS_WARN("input cloud is a nullptr.");
+        return;
+    }
+
+    // Create marker and publish
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "map";
+    marker.header.stamp = ros::Time(0);
+    marker.ns = "dangerous_areas";
+    // id must me always the same in order to overwrite old dangerous areas
+    marker.id = 1;
+    marker.action = visualization_msgs::Marker::ADD;
+
+    marker.scale.x = 0.05;
+    marker.scale.y = 0.05;
+
+    marker.pose.orientation.w = 1.0;
+    marker.color.a = 0.5;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+
+    marker.text = "dangerous area";
+    marker.lifetime = ros::Duration();
+
+    uint32_t marker_shape = visualization_msgs::Marker::POINTS;
+    marker.type = marker_shape;
+
+    for (pcl::PointXYZ pcl_pt : input_cloud->points){
+        geometry_msgs::PointStamped p;
+        geometry_msgs::PointStamped p_map;
+        p.header.stamp = msg->header.stamp;
+        p.header.frame_id = msg->header.frame_id;
+        p.point.x = pcl_pt.x;
+        p.point.y = pcl_pt.y;
+        p.point.z = pcl_pt.z;
+        listener.waitForTransform("map","kinect_depth_optical_frame", p.header.stamp, ros::Duration(2.0));
+        listener.transformPoint("map", p, p_map);
+        marker.points.push_back(p_map.point);
+    }
+
+    while (marker_pub.getNumSubscribers() < 1){
+        if (!ros::ok()){
+            return;
+        }
+        ROS_WARN_ONCE("Please create a subscriber to the marker");
+        sleep(1);
+    }
+    marker_pub.publish(marker);
+}
+
+/**
  * @brief MarkerPublisher::spin
  * ROS node controller.
  */
 void MarkerPublisher::spin(){
-    ros::Rate lr(10);
+    ros::Rate lr(3);
     while(ros::ok()){
         try{
             ros::spinOnce();
