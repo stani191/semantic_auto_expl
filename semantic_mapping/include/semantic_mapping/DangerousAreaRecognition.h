@@ -52,17 +52,27 @@ public:
 
     void cloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
 
+    void setDebugFlag();
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> simpleVis (PointCloud<PointXYZ>::ConstPtr cloud0, PointCloud<PointXYZ>::ConstPtr cloud1, PointCloud<PointXYZ>::ConstPtr cloud2, PointCloud<PointXYZ>::ConstPtr cloud3, PointCloud<PointXYZ>::ConstPtr cloud4);
+    void setKinectHeight(double d);
+    void setKinectHeightOffset(double d);
+    void setKinectTilt(double d);
+
 private:
     struct timeval tp;
 
     bool finished = true;
-    double kinect_height = -1;
-    double kinect_height_offset = 0.05;
+    double kinect_height = -0.36;
+    double kinect_height_offset = -0.06;
+    double kinect_tilt = 0.0;
     std::string node_name;
     ros::NodeHandle n;
     ros::Subscriber input_cloud_sub;
     ros::Publisher dangerous_pub;
-    tf::TransformListener listener;
+
+    bool debug = false;
+
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 };
 
 #endif // DANGEROUSAREARECOGNITION_H

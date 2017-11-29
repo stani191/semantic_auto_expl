@@ -30,7 +30,7 @@ void pointCloud2Callback(const sensor_msgs::PointCloud2ConstPtr& msg){
 
     // Perform the actual filtering
     std::cerr << "Point cloud data: " << cloud->points.size () << " points" << std::endl;
-    std::string filename = "pcd/pcd_open_door_" + std::to_string(filenameCounter) + ".pcd";
+    std::string filename = "pcd/pcd_no_open_door_" + std::to_string(filenameCounter) + ".pcd";
     filenameCounter++;
     pcl::io::savePCDFileASCII (filename, *cloud);
     std::cerr << "Saved data points to " << filename << std::endl;

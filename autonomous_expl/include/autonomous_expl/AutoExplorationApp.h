@@ -53,6 +53,8 @@ public:
     void setCurrentRobotPos();
     bool updateMap();
 
+    void resetTimeoutTimer();
+
     geometry_msgs::PointStamped mapToPixelCoords(geometry_msgs::PointStamped robotPosMap);
     geometry_msgs::PointStamped pixelToMapCoords(geometry_msgs::PointStamped robotPosPixel);
     double euclideanDistance(const geometry_msgs::Point p1, const geometry_msgs::Point p2);
@@ -93,6 +95,7 @@ private:
     bool initFinished = false;
     bool navigationActive = true;
     bool mapAvailable = false;
+    bool isTimeout = false;
 
     struct timeval tp;
 
@@ -108,6 +111,14 @@ private:
     ros::ServiceClient mapClient;
 
     tf::TransformListener tf_listener;
+
+    double time_begin;
+    double time_current;
+    double timeout_begin;
+    double timeout_current;
+    double distance_travelled = 0.0;
+    const double timeout_threshold = 10.0;
+    int num_targets = 0;
 
     const double PI = 3.1415926535897;
     const double KINECT_TILT_90DEG = -0.12;

@@ -173,9 +173,33 @@ add_executable(dangerous_area_detector
    ${OpenCV_LIBS}
 )
 
+add_executable(experiments_open_doors_sim
+    src/Experiments_OpenDoors_Sim.cpp
+    src/OpenDoorRecognitionApp.cpp
+ )
+
+ target_link_libraries(experiments_open_doors_sim
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+   ${OpenCV_LIBS}
+)
+
+add_executable(experiments_dangerous_areas_real
+    src/Experiments_DangerousAreas_Real.cpp
+    src/DangerousAreaRecognition.cpp
+ )
+
+ target_link_libraries(experiments_dangerous_areas_real
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+   ${OpenCV_LIBS}
+)
+
 add_dependencies(open_door_detector ${catkin_EXPORTED_TARGETS})
 add_dependencies(marker_publisher ${catkin_EXPORTED_TARGETS})
 add_dependencies(dangerous_area_detector ${catkin_EXPORTED_TARGETS})
+add_dependencies(experiments_open_doors_sim ${catkin_EXPORTED_TARGETS})
+add_dependencies(experiments_dangerous_areas_real ${catkin_EXPORTED_TARGETS})
 #############
 ## Install ##
 #############

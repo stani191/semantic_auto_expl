@@ -7,14 +7,14 @@
 <arg name="paused" default="false"/>
 <arg name="use_sim_time" default="true"/>
 <arg name="gui" default="false"/>
-<arg name="throttled" default="false"/>
+<arg name="throttled" default="true"/>
 <arg name="rviz" default="true" />
 <arg name="robot_id" default="robotino" />
 <arg name="autolocalization" default="false"/>
 <arg name="3d_mapping" default="false" />
 <arg name="map_update_interval" default="2" />
 
-<arg name="auto_exploration" default="false" />
+<arg name="auto_exploration" default="true" />
 <arg name="open_door_detection" default="false" />
 <arg name="dangerous_area_detection" default="false" />
 

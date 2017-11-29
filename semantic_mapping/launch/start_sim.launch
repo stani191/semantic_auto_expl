@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- define arguments -->
+<arg name="robot_env" default="ipa-apartment"/>
+<arg name="robot" default="robotino"/>
+<arg name="paused" default="false"/>
+<arg name="use_sim_time" default="true"/>
+<arg name="gui" default="true"/>
+<arg name="throttled" default="true"/>
+<arg name="rviz" default="true" />
+<arg name="robot_id" default="robotino" />
+<arg name="autolocalization" default="false"/>
+<arg name="3d_mapping" default="false" />
+<arg name="map_update_interval" default="2" />
+
+<arg name="auto_exploration" default="false" />
+<arg name="open_door_detection" default="false" />
+<arg name="dangerous_area_detection" default="false" />
+
+
+<!-- upload default configuration parameters -->
+<include file="$(find robotino_gazebo_worlds)/launch/upload_object_locations.launch">
+	<arg name="robot_env" value="$(arg robot_env)" />
+</include>
+
+<!-- startup simulated world -->
+<include file="$(find robotino_gazebo_worlds)/launch/$(arg robot_env).launch">
+	<arg name="paused" value="$(arg paused)" />
+	<arg name="use_sim_time" value="$(arg use_sim_time)" />
+	<arg name="gui" value="$(arg gui)" />
+	<arg name="throttled" value="$(arg throttled)" />
+</include>
+
+<!-- startup simulated robot -->
+<include file="$(find robotino_bringup_sim)/robots/$(arg robot)/$(arg robot).launch" >
+	<arg name="paused" value="$(arg paused)" /> 
+	<arg name="robot" value="$(arg robot)" />
+</include>
+
+<!-- Run rviz -->
+<include file="$(find squirrel_navigation)/launch/rviz.launch" if="$(arg rviz)">
+	<arg name="mapping" value="true"/>
+	<arg name="robot" value="robotino"/>
+</include>
+
+</launch>

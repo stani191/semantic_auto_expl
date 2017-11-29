@@ -47,7 +47,6 @@ AutoExplorationApp::AutoExplorationApp(){
     targetMap = robotPosMap;
 
     // Set kinect tilt to 90°
-
     ROS_INFO("Setting kinect tilt...");
     std_msgs::Float64 tilt;
     tilt.data = KINECT_TILT_90DEG;
@@ -58,6 +57,7 @@ AutoExplorationApp::AutoExplorationApp(){
 
     ROS_INFO("AutoExploration initializazion done.");
 
+    time_begin = ros::Time::now().toSec();
     // make step forward and rotate 2*360° to obtain useful map
     step();
     rotate();
@@ -117,20 +117,27 @@ double AutoExplorationApp::euclideanDistance(const geometry_msgs::Point p1, cons
 }
 
 /**
+ * @brief resetTimeoutTimer
+ * Resets the timeout timer for move_base navigation deadlock
+ */
+void AutoExplorationApp::resetTimeoutTimer(){
+    timeout_begin = ros::Time::now().toSec();
+}
+
+/**
  * @brief AutoExplorationApp::odomCallback
  * Odometry listener. Determines whether the robot is moving or not and sets the according boolean flag.
  */
 void AutoExplorationApp::odomCallback(const nav_msgs::Odometry msg){
-    if(mapAvailable && initFinished && !navigationActive){
-        geometry_msgs::Vector3 angular = msg.twist.twist.angular;
-        geometry_msgs::Vector3 linear = msg.twist.twist.linear;
-
+    geometry_msgs::Vector3 angular = msg.twist.twist.angular;
+    geometry_msgs::Vector3 linear = msg.twist.twist.linear;
+    /*if(mapAvailable && initFinished && !navigationActive){
         if(abs(linear.x) < 0.01 && abs(linear.y) < 0.01 && abs(angular.z) < 0.01 && isMoving){
             isMoving = false;
-            ROS_DEBUG("Robot does not move anymore");
+            ROS_INFO("Robot does not move anymore");
         } else if ((abs(linear.x) >= 0.01 || abs(linear.y) >= 0.01 || abs(angular.z) >= 0.01) && !isMoving){
             isMoving = true;
-            ROS_DEBUG("Robot started to move.");
+            ROS_INFO("Robot started to move.");
         }
 
         setCurrentRobotPos();
@@ -144,6 +151,18 @@ void AutoExplorationApp::odomCallback(const nav_msgs::Odometry msg){
         } else if (euclideanDistance(robotPosWorld.point, targetWorld.point) < 0.5){
             ROS_INFO("Target == robot position, nothing to do.");
             ros::shutdown;
+        }
+    }*/
+    if (mapAvailable && initFinished){
+        if(fabs(linear.x) >= 0.001 || fabs(linear.y) >= 0.001 || fabs(angular.z) >= 0.001){
+            resetTimeoutTimer();
+            isTimeout = false;
+        } else {
+            timeout_current = ros::Time::now().toSec();
+            if (timeout_current - timeout_begin > timeout_threshold){
+                ROS_INFO("Timeout because, timeout_current = %f | timeout_begin = %f", timeout_current, timeout_begin);
+                isTimeout = true;
+            }
         }
     }
 }
@@ -252,16 +271,31 @@ void AutoExplorationApp::moveBaseStatusCallback(const actionlib_msgs::GoalStatus
 
             } else if(!status1){
                 ROS_INFO("No active target - select new target and start to navigate");
+                time_current = ros::Time::now().toSec() - time_begin;
+                ROS_INFO("Current ROS time: %f s", time_current);
                 navigationActive = false;
                 if(!selectNavTarget(dyn_map,mapResolution)){
                     ROS_INFO("No targets available. Finished.");
                     ros::shutdown;
                 }
                 navigate();
+            } else if(status1 && isTimeout && initFinished){
+                ROS_INFO("Timeout - select new target and start to navigate");
+                time_current = ros::Time::now().toSec() - time_begin;
+                ROS_INFO("Current ROS time: %f s", time_current);
+                navigationActive = false;
+                if(!selectNavTarget(dyn_map,mapResolution)){
+                    ROS_INFO("No targets available. Finished.");
+                    ros::shutdown;
+                }
+                isTimeout = false;
+                resetTimeoutTimer();
+                navigate();
             }
-
         } else {
             ROS_INFO("No active target - select new target and start to navigate");
+            time_current = ros::Time::now().toSec() - time_begin;
+            ROS_INFO("Current ROS time: %f s", time_current);
             if(!selectNavTarget(dyn_map,mapResolution)){
                 ROS_INFO("No targets available. Finished.");
                 ros::shutdown;
@@ -277,6 +311,7 @@ void AutoExplorationApp::moveBaseStatusCallback(const actionlib_msgs::GoalStatus
  * Sets the current robot position in map and world frame
  */
 void AutoExplorationApp::setCurrentRobotPos(){
+    geometry_msgs::PointStamped robotPosWorldOld = robotPosWorld;
     robotPosBaseLink.header.seq = robotPosBaseLink.header.seq++;
     robotPosBaseLink.header.stamp = ros::Time::now();
     try {
@@ -289,6 +324,10 @@ void AutoExplorationApp::setCurrentRobotPos(){
         ROS_ERROR("%s", ex.what());
         ros::Duration(1.0).sleep();
     }
+
+    distance_travelled += euclideanDistance(robotPosWorldOld.point, robotPosWorld.point);
+    ROS_INFO("Distance travelled: %f m", distance_travelled);
+
 }
 
 /**
@@ -376,6 +415,9 @@ bool AutoExplorationApp::navigate(geometry_msgs::PointStamped target){
 
         target_pub.publish(msg);
         ROS_INFO("Navigating to: %f, %f, %f", msg.pose.position.x, msg.pose.position.y, msg.pose.position.z);
+
+        num_targets++;
+        ROS_INFO("Num of targets: %d", num_targets);
         return true;
     }
     return false;

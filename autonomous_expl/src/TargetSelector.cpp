@@ -54,7 +54,7 @@ geometry_msgs::Point TargetSelector::selectTarget(vector<std::pair<Point2f, Poin
     vector<double> cost;
     for(std::pair<Point2f,Point2f> &target : targets){
         // Manhattan distance
-        double dist = abs(target.second.x-robotPos.x) + abs(target.second.y-robotPos.y);
+        double dist = fabs(target.second.x-robotPos.x) + fabs(target.second.y-robotPos.y);
         double value = frontiers.at<uchar>(target.first.y,target.first.x*3);
         if(value == 0){
             value = 0.1;
