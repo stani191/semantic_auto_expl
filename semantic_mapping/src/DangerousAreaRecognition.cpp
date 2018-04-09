@@ -154,9 +154,9 @@ void DangerousAreaRecognition::cloudCallback(const sensor_msgs::PointCloud2Const
     dangerous_pub.publish(output_msg);
 
     if ((int) dangerous_areas->points.size() > 0){
-        ROS_WARN("Dangerous area with %d points found.", (int) dangerous_areas->points.size());
+        ROS_DEBUG("Dangerous area with %d points found.", (int) dangerous_areas->points.size());
     } else {
-        ROS_WARN("No dangerous area found");
+        ROS_DEBUG("No dangerous area found");
     }
 
     if (debug){

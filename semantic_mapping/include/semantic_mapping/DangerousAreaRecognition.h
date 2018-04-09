@@ -62,15 +62,15 @@ private:
     struct timeval tp;
 
     bool finished = true;
-    double kinect_height = -0.36;
-    double kinect_height_offset = -0.06;
+    double kinect_height = -0.72; //-0.36 for sim
+    double kinect_height_offset = -0.03; // -0.06 for sim
     double kinect_tilt = 0.0;
     std::string node_name;
     ros::NodeHandle n;
     ros::Subscriber input_cloud_sub;
     ros::Publisher dangerous_pub;
 
-    bool debug = false;
+    bool debug = true;
 
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer;
 };

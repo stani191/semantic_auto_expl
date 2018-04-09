@@ -160,7 +160,7 @@ void AutoExplorationApp::odomCallback(const nav_msgs::Odometry msg){
         } else {
             timeout_current = ros::Time::now().toSec();
             if (timeout_current - timeout_begin > timeout_threshold){
-                ROS_INFO("Timeout because, timeout_current = %f | timeout_begin = %f", timeout_current, timeout_begin);
+                //ROS_INFO("Timeout because, timeout_current = %f | timeout_begin = %f", timeout_current, timeout_begin);
                 isTimeout = true;
             }
         }
@@ -290,6 +290,7 @@ void AutoExplorationApp::moveBaseStatusCallback(const actionlib_msgs::GoalStatus
                 }
                 isTimeout = false;
                 resetTimeoutTimer();
+                rotate();
                 navigate();
             }
         } else {
@@ -361,19 +362,20 @@ void AutoExplorationApp::rotate(){
         msg.linear.z = 0;
         msg.angular.x = 0;
         msg.angular.y = 0;
-        msg.angular.z = PI/8;
+        msg.angular.z = PI/16;
 
         double current_angle = 0;
         double t0 = ros::Time::now().toSec();
         double t1;
 
-        vel_pub.publish(msg);
+        //vel_pub.publish(msg);
         ROS_INFO("Published rotation");
 
         while(current_angle < 2*PI){
+            vel_pub.publish(msg); // ROBOTINO
             t1 = ros::Time::now().toSec();
-            current_angle = (PI/8)*(t1-t0);
-            sleep(1);
+            current_angle = (msg.angular.z)*(t1-t0);
+            //sleep(1); //ROBOTINO
         }
 
         stop();
@@ -387,7 +389,7 @@ void AutoExplorationApp::rotate(){
 void AutoExplorationApp::step(){
     if (ros::ok()){
         geometry_msgs::Twist msg;
-        msg.linear.x = 0.5;
+        msg.linear.x = 0.1;
         msg.linear.y = 0;
         msg.linear.z = 0;
         msg.angular.x = 0;
@@ -395,7 +397,7 @@ void AutoExplorationApp::step(){
         msg.angular.z = 0;
         vel_pub.publish(msg);
         ROS_INFO("Published step forward");
-        sleep(1);
+        sleep(2); //ROBOTINO (OLD=1)
         stop();
     }
 }
@@ -413,7 +415,7 @@ bool AutoExplorationApp::navigate(geometry_msgs::PointStamped target){
         msg.pose.position = target.point;
         msg.pose.orientation.w = 1.0;
 
-        target_pub.publish(msg);
+        //target_pub.publish(msg);
         ROS_INFO("Navigating to: %f, %f, %f", msg.pose.position.x, msg.pose.position.y, msg.pose.position.z);
 
         num_targets++;

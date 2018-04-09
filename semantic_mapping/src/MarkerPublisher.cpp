@@ -96,7 +96,7 @@ void MarkerPublisher::addDoorMarker(const geometry_msgs::Point pose, std::string
     // 3. Publish the door marker - Line strip
     visualization_msgs::Marker marker;
     marker.header.frame_id = "map";
-    marker.header.stamp = ros::Time(0);
+    marker.header.stamp = ros::Time::now();
 
     marker.ns = "doors";
     marker.id = id;
@@ -170,7 +170,7 @@ void MarkerPublisher::replaceDoor(semantic_mapping_msgs::DoorMessage oldDoor, se
     // Add new door marker
     geometry_msgs::PointStamped pt_new_start_map;
     geometry_msgs::PointStamped pt_new_end_map;
-    if(listener.waitForTransform("map","world", ros::Time(0), ros::Duration(5.0))){
+    if(listener.waitForTransform("map","world", ros::Time::now(), ros::Duration(5.0))){
         listener.transformPoint("map", newDoor.pt_start, pt_new_start_map);
         listener.transformPoint("map", newDoor.pt_end, pt_new_end_map);
         addDoorMarker(midPoint(pt_new_start_map.point,pt_new_end_map.point), newDoor.state, euclideanDistance(pt_new_start_map.point,pt_new_end_map.point), newDoor.header.seq);
@@ -188,7 +188,7 @@ void MarkerPublisher::updateNavTargetMarker(const geometry_msgs::Point pose){
 
     visualization_msgs::Marker marker;
     marker.header.frame_id = "map";
-    marker.header.stamp = ros::Time(0);
+    marker.header.stamp = ros::Time::now();
     marker.ns = "target";
     // id must me always the same in order to overwrite old targets
     marker.id = 1;
@@ -273,7 +273,7 @@ void MarkerPublisher::openDoorCallback(semantic_mapping_msgs::DoorMessage msg){
     msg.pt_start.header.frame_id = "world";
     msg.pt_end = pt_end_world;
     msg.pt_end.header.frame_id = "world";
-    msg.header.stamp = ros::Time(0);
+    msg.header.stamp = ros::Time::now();
 
     if(!isDuplicate(msg)){
         doors.push_back(msg);
@@ -298,7 +298,7 @@ void MarkerPublisher::navTargetCallback(geometry_msgs::PoseStamped msg){
         navTargetMap = msg;
 
     } else if (msg.header.frame_id == "world"){
-        if(listener.waitForTransform("map","world", ros::Time(0), ros::Duration(2.0))){
+        if(listener.waitForTransform("map","world", ros::Time::now(), ros::Duration(2.0))){
             listener.transformPose("map", msg, navTargetMap);
         } else {
             ROS_WARN("transform error at navTargetCallback");
@@ -321,9 +321,9 @@ void MarkerPublisher::updateDoorMarkers(){
     for(semantic_mapping_msgs::DoorMessage door : doors){
         geometry_msgs::PointStamped pt_new_start_map;
         geometry_msgs::PointStamped pt_new_end_map;
-        door.pt_start.header.stamp = ros::Time(0);
-        door.pt_end.header.stamp = ros::Time(0);
-        if(listener.waitForTransform("map","world", ros::Time(0), ros::Duration(2.0))){
+        door.pt_start.header.stamp = ros::Time::now();
+        door.pt_end.header.stamp = ros::Time::now();
+        if(listener.waitForTransform("map","world", ros::Time::now(), ros::Duration(2.0))){
             listener.transformPoint("map", door.pt_start, pt_new_start_map);
             listener.transformPoint("map", door.pt_end, pt_new_end_map);
             addDoorMarker(midPoint(pt_new_start_map.point,pt_new_end_map.point), door.state, euclideanDistance(pt_new_start_map.point,pt_new_end_map.point), door.header.seq);
@@ -351,8 +351,8 @@ void MarkerPublisher::dangerousAreasCallback(const sensor_msgs::PointCloud2Const
 
     // Create marker and publish
     visualization_msgs::Marker marker;
-    marker.header.frame_id = "map";
-    marker.header.stamp = ros::Time(0);
+    marker.header.frame_id = "kinect_depth_optical_frame";
+    marker.header.stamp = ros::Time::now();
     marker.ns = "dangerous_areas";
     // id must me always the same in order to overwrite old dangerous areas
     marker.id = 1;
@@ -372,20 +372,13 @@ void MarkerPublisher::dangerousAreasCallback(const sensor_msgs::PointCloud2Const
 
     uint32_t marker_shape = visualization_msgs::Marker::POINTS;
     marker.type = marker_shape;
-
     for (pcl::PointXYZ pcl_pt : input_cloud->points){
-        geometry_msgs::PointStamped p;
-        geometry_msgs::PointStamped p_map;
-        p.header.stamp = msg->header.stamp;
-        p.header.frame_id = msg->header.frame_id;
-        p.point.x = pcl_pt.x;
-        p.point.y = pcl_pt.y;
-        p.point.z = pcl_pt.z;
-        listener.waitForTransform("map","kinect_depth_optical_frame", p.header.stamp, ros::Duration(2.0));
-        listener.transformPoint("map", p, p_map);
-        marker.points.push_back(p_map.point);
+        geometry_msgs::Point p;
+        p.x = pcl_pt.x;
+        p.y = pcl_pt.y;
+        p.z = pcl_pt.z;
+        marker.points.push_back(p);
     }
-
     while (marker_pub.getNumSubscribers() < 1){
         if (!ros::ok()){
             return;

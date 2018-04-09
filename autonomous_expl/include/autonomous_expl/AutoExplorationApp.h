@@ -122,7 +122,7 @@ private:
 
     const double PI = 3.1415926535897;
     const double KINECT_TILT_90DEG = -0.12;
-    const int WAIT_INIT = 20;
+    const int WAIT_INIT = 30;
     const int WAIT_TILT = 5;
 };
 

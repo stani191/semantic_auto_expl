@@ -82,12 +82,12 @@ private:
     double alpha = 0.10; // 0.04
     double door_width_min = 0.65;
     double door_width_max = 1.3;
-    double door_height = -1.95;
-    double kinect_height = -0.36;
+    double door_height = -1.90;
+    double kinect_height = -0.72; //-0.36 sim
     double stripe_height = 0;
     double stripe_noise = 0.007;
     double cube_distance = 0.05;
-    int max_noise = 1000;
+    int max_noise = 100; // 1000
 
     struct timeval tp;
     int door_id_counter = 0;

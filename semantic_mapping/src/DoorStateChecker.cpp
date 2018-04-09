@@ -102,11 +102,11 @@ void DoorStateChecker::mapCallback(const nav_msgs::OccupancyGrid msg){
  */
 void DoorStateChecker::checkDoorState(semantic_mapping_msgs::DoorMessage &door){
     // 1. Transform door start/end points into map coordinates
-    door.pt_start.header.stamp = ros::Time(0);
-    door.pt_end.header.stamp = ros::Time(0);
+    door.pt_start.header.stamp = ros::Time::now();
+    door.pt_end.header.stamp = ros::Time::now();
     geometry_msgs::PointStamped pt_start_map;
     geometry_msgs::PointStamped pt_end_map;
-    tf_listener.waitForTransform("map","world", ros::Time(0) , ros::Duration(5.0));
+    tf_listener.waitForTransform("map","world", ros::Time::now() , ros::Duration(5.0));
     tf_listener.transformPoint("map", door.pt_start, pt_start_map);
     tf_listener.transformPoint("map", door.pt_end, pt_end_map);
     // Split door in 2 equal halves - find center points
@@ -124,7 +124,7 @@ void DoorStateChecker::checkDoorState(semantic_mapping_msgs::DoorMessage &door){
     for(int i = 0; i < dyn_map.rows; i++){
             for(int j = 0; j < dyn_map.cols; j++){
                 if (dyn_map.at<uchar>(i,j) == 0){
-                    cv::Point2f tmp(j,i);
+                    cv::Point2f tmp(i,j);
                     if (euclideanDistance(tmp, leftCenterPoint) < leftDist){
                         occupiedLeft++;
                     }
@@ -136,9 +136,10 @@ void DoorStateChecker::checkDoorState(semantic_mapping_msgs::DoorMessage &door){
     }
     // if there are more than x cells in both cubes declare door as closed, else as open
     if (occupiedLeft > occupiedThresh && occupiedRight > occupiedThresh){
-        ROS_INFO("Door changed to closed - occL = %d | occR = %d", occupiedLeft, occupiedRight);
+        ROS_INFO("Door is closed - occL = %d | occR = %d", occupiedLeft, occupiedRight);
         door.state = "closed";
     } else {
+        ROS_INFO("Door is open - occL = %d | occR = %d", occupiedLeft, occupiedRight);
         door.state = "open";
     }
 }

@@ -177,7 +177,7 @@ void OpenDoorRecognitionApp::cloudCallback(const sensor_msgs::PointCloud2ConstPt
 
         // If no dominant wall is found algorithm has finished
         if (inliers->indices.size () == 0){
-          ROS_WARN("Could not estimate a planar model for the given dataset.");
+          ROS_DEBUG("Could not estimate a planar model for the given dataset.");
           finished = true;
           return;
         }
@@ -283,12 +283,12 @@ void OpenDoorRecognitionApp::cloudCallback(const sensor_msgs::PointCloud2ConstPt
                             msg.state = "open";
                             map_pub.publish(msg);
                             door_id_counter++;
-                            ROS_INFO("%d points in door cube, found in %d iteration", (int)door_cloud->points.size(), i);
+                            ROS_DEBUG("%d points in door cube, found in %d iteration", (int)door_cloud->points.size(), i);
                             finished = true;
                             last_correct = true;
                             return;
                         } else {
-                            ROS_DEBUG("Door found, but %d points in cube.", (int)door_cloud->points.size());
+                            ROS_INFO("Door found, but %d points in cube.", (int)door_cloud->points.size());
                         }
                     }
                 }

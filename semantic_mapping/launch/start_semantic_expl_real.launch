@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- define arguments -->
+<arg name="robot_env" default="ipa-apartment"/>
+<arg name="robot" default="robotino"/>
+<arg name="paused" default="false"/>
+<arg name="use_sim_time" default="true"/>
+<arg name="gui" default="false"/>
+<arg name="throttled" default="true"/>
+<arg name="rviz" default="true" />
+<arg name="robot_id" default="robotino" />
+<arg name="autolocalization" default="false"/>
+<arg name="3d_mapping" default="false" />
+<arg name="map_update_interval" default="2" />
+
+<arg name="auto_exploration" default="false" />
+<arg name="open_door_detection" default="true" />
+<arg name="dangerous_area_detection" default="true" />
+
+
+<!-- upload default configuration parameters -->
+<include file="$(find robotino_gazebo_worlds)/launch/upload_object_locations.launch">
+	<arg name="robot_env" value="$(arg robot_env)" />
+</include>
+
+<!-- startup world TF (REAL)-->
+<include file="$(find cob_gazebo_worlds)/launch/world_urdf.launch">
+		<arg name="robot_env" value="$(arg robot_env)"/>
+</include>
+
+<!-- static TF (REAL)-->
+<include file="$(find semantic_mapping)/launch/static_tf.launch">
+</include>
+
+<!-- start gmapping -->
+<node name="slam_gmapping" pkg="gmapping" type="slam_gmapping">
+	<param name="xmin" value="-20" />
+	<param name="xmax" value="20" />
+	<param name="ymin" value="-20" />
+	<param name="ymax" value="20" />
+</node>
+
+<!-- Run Monte Carlo Localization (many parameters in squirrel_localizer.launch) -->
+<include file="$(find squirrel_localizer)/launch/squirrel_localizer.launch"/>
+
+<!-- Run pointcloud_filter_node: filter the PointCloud to speed up planning -->
+<node pkg="squirrel_navigation" type="pointcloud_filter_node" name="pointcloud_filter" output="screen" respawn="true">
+	<param name="pointcloud_in" value="/kinect/depth/points" />
+	<param name="pointcloud_out" value="/rgbdscan" />
+	<param name="pointcloud_size" value="6500" />
+</node>
+
+<!-- Run autolocalization_node: localize the robot before starting navigation tasks -->
+<node pkg="squirrel_navigation" type="autolocalization_node" name="autolocalization" output="screen" if="$(arg autolocalization)">
+	<param name="global_localization" value="false" />
+	<param name="max_angular_vel" value="0.1" />
+	<param name="max_linear_vel" value="0.1" />
+	<param name="tolerance_var_x" value="0.05" />
+	<param name="tolerance_var_y" value="0.05" />
+	<param name="tolerance_var_th" value="0.05" />
+</node>
+
+<!--- Run move_base: execute the navigation tasks -->
+<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+	<rosparam file="$(find squirrel_navigation)/config/$(arg robot_id)/move_base/costmap_common_params.yaml" command="load" ns="global_costmap" />
+	<rosparam file="$(find squirrel_navigation)/config/$(arg robot_id)/move_base/costmap_common_params.yaml" command="load" ns="local_costmap" />
+	<rosparam file="$(find squirrel_navigation)/config/$(arg robot_id)/move_base/local_costmap_params.yaml" command="load" />
+	<rosparam file="$(find squirrel_navigation)/config/$(arg robot_id)/move_base/global_costmap_params.yaml" command="load" />
+	<rosparam file="$(find squirrel_navigation)/config/$(arg robot_id)/move_base/base_local_planner_params.yaml" command="load" />
+	<rosparam file="$(find squirrel_navigation)/config/$(arg robot_id)/move_base/move_base_params.yaml" command="load" />
+</node>
+
+<!-- Run the octomap server and the 3d collision check -->
+<include file="$(find squirrel_3d_mapping)/launch/3d_mapping.launch" if="$(arg 3d_mapping)"/>
+
+<!-- Run rviz -->
+<include file="$(find squirrel_navigation)/launch/rviz.launch" if="$(arg rviz)">
+	<arg name="mapping" value="true"/>
+	<arg name="robot" value="robotino"/>
+</include>
+
+<!-- start autonomous exploration -->
+<node pkg="autonomous_expl" type="autonomous_expl_node" name="autonomous_expl_node" output="screen" if="$(arg auto_exploration)"/>
+
+<!-- start open door recognition -->
+<node pkg="semantic_mapping" type="open_door_detector" name="open_door_detector" output="screen" if="$(arg open_door_detection)"/>
+
+<!-- start dangerous area detection -->
+<node pkg="semantic_mapping" type="dangerous_area_detector" name="dangerous_area_detector" output="screen" if="$(arg dangerous_area_detection)"/>
+
+<!-- start marker publisher -->
+<node pkg="semantic_mapping" type="marker_publisher" name="marker_publisher" output="screen"/>
+
+</launch>
